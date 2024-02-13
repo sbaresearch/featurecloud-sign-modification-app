@@ -7,7 +7,30 @@ import numpy as np
 
 
 
-# Function to modify the least significant bits and update raw_data
+def flip_lowest_values_based_on_threshold(param_array, percentage=0.1):
+    """
+    Flip the percentage of lowest absolute values in the array to a random small positive or negative value,
+    where the range is determined by the threshold calculated from the percentage of the lowest values.
+    """
+    # Flatten the array to work with it as a 1D array
+    flat_array = param_array.flatten()
+    # Calculate the number of values to flip
+    num_values_to_flip = int(len(flat_array) * percentage)
+    # Find the threshold below which values will be flipped
+    threshold = np.partition(abs(flat_array), num_values_to_flip)[num_values_to_flip]
+    # Identify indices below the threshold for negative and positive values separately
+    negative_indices = (flat_array < 0) & (abs(flat_array) < threshold)
+    positive_indices = (flat_array >= 0) & (abs(flat_array) < threshold)
+    # Generate random positive small values within the range [0, threshold] for negative values
+    random_positive_values = np.random.uniform(0, threshold, size=np.sum(negative_indices))
+    # Generate random negative small values within the range [-threshold, 0] for positive values
+    random_negative_values = np.random.uniform(-threshold, 0, size=np.sum(positive_indices))
+    # Apply the generated random values separately
+    flat_array[negative_indices] = random_positive_values
+    flat_array[positive_indices] = random_negative_values
+    # Reshape the array back to its original shape
+    return flat_array.reshape(param_array.shape)
+
 def modify_and_update_network(model, percentage_to_modify):
     for initializer in model.graph.initializer:
         # Check if the data is in raw format
@@ -20,10 +43,15 @@ def modify_and_update_network(model, percentage_to_modify):
         if percentage_to_modify > 0:
             # Flatten the weight data for easier processing
             flattened_weights = weight_data.flatten()
-
+            # Flip the values (i.e. signs are flipped too) of the values below threshold given by %
+            modified_weight_data = flip_lowest_values_based_on_threshold(weight_data, percentage_to_modify)
+            # Create a new initializer with the modified array
+            new_initializer = numpy_helper.from_array(modified_weight_data, name=initializer.name)
+            # Replace the old initializer with the modified one
+            initializer.CopyFrom(new_initializer)
 
             # Reshape the modified weights to the original shape
-            modified_weights = np.array(modified_weights).reshape(weight_data.shape)
+            modified_weights = np.array(weight_data).reshape(weight_data.shape)
 
             # Convert the modified weights to the serialized binary format
             serialized_data = modified_weights.astype(np.float32).tobytes()
@@ -37,7 +65,7 @@ def modify_and_update_network(model, percentage_to_modify):
     return model
 
 # Function to prune the connections from the network
-def prune_connections(model, percentage_to_modify):
+def modify_signs(model, percentage_to_modify):
     modified_model = modify_and_update_network(model, percentage_to_modify)
     return modified_model
 
