@@ -5,7 +5,7 @@ The app implements a defense against a white-box data exfiltration attack by mod
 ## Description
 
 The app implements a defense against a white-box data exfiltration attack by modifying the trainable parameters of based on the values of the parameters.
-As the attack aims to hide information in the model during the model training, by forcing the signs of the parameters to corresponds to bits of training data, this defense aims to remove the hidden information.
+As the attack aims to hide information in the model during the model training, by forcing the signs of the parameters to correspond to bits of training data, this defense aims to remove the hidden information.
 This aims to prevent the attacker from reconstructing and thus exfiltrating the original training data.
 It is important to note that applying this defense might compromise the performance of the model on the original, intended task.
 Furthermore, this approach can potentially remove a watermark embedded in the model parameters.
@@ -30,7 +30,7 @@ Following information should be provided in the config file:
 
 The required information should be provided in the following form inside a .yml file, e.g.:
 model_name: "model"
-percentage_to_modify: 10
+percentage_to_modify: 0.1
 
 ## Output
 
@@ -54,4 +54,4 @@ This app implements four states
 
 The required information should be provided in the following form inside a .yml file, e.g.:
 model_name: "model"
-percentage_to_modify: 10
+percentage_to_modify: 0.1
