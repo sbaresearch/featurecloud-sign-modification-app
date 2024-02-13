@@ -1,5 +1,5 @@
 from FeatureCloud.app.engine.app import AppState, app_state, Role
-from parameter_modification import prune_connections, compare_original_to_modified, sanitize_model, compare_graph_structure
+from parameter_modification import modify_signs, compare_original_to_modified, compare_graph_structure
 import onnx
 import os
 import bios
@@ -30,7 +30,7 @@ class InitialState(AppState):
 @app_state('read_input')
 class InputState(AppState):
     def register(self):
-        self.register_transition('sanitize', Role.COORDINATOR)
+        self.register_transition('defend', Role.COORDINATOR)
 
     def run(self):
         self.update(progress=0.2)
@@ -63,7 +63,7 @@ class pruning(AppState):
 
   def run(self):
       self.update(progress=0.4)
-      modified_model = sanitize_model(self.load("original_model"), self.load("n_lsbs"))
+      modified_model = modify_signs(self.load("original_model"), self.load("percentage_to_modify"))
       self.update(progress=0.5)
       self.log('Model parameters defended successfully')
       self.store(key="modified_model", value=modified_model)
