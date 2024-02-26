@@ -1,0 +1,2 @@
+model_name: "simple_mlp"
+percentage_to_modify: 0.1
